@@ -37,6 +37,8 @@ router.get('/getOwner/:id', async (req, res) => {
         const sql = `SELECT * FROM owner WHERE id = ?`;
         const [rows] = await db.query(sql, [id]);
 
+        console.log("📦 Owner récupéré :", rows);
+
         if (rows.length === 0) {
             return res.status(404).json({ error: "Owner introuvable." });
         }
@@ -44,6 +46,19 @@ router.get('/getOwner/:id', async (req, res) => {
         res.status(200).json(rows[0]);
     } catch (error) {
         console.error("❌ Erreur lors de la récupération :", error);
+        res.status(500).json({ error: "Erreur serveur." });
+    }
+});
+
+// 🔍 Récupérer tous les owners
+router.get('/getAllOwners', async (req, res) => {
+    try {
+        const sql = "SELECT * FROM owner";
+        const [rows] = await db.query(sql);
+        console.log("📦 Owners récupérés :", rows);
+        res.status(200).json(rows);
+    } catch (err) {
+        console.error("❌ Erreur lors de la récupération des owners :", err);
         res.status(500).json({ error: "Erreur serveur." });
     }
 });
@@ -98,6 +113,8 @@ router.put('/updateOwner/:id', async (req, res) => {
 
         const [result] = await db.query(sql, values);
 
+        console.log("✅ Owner mis à jour :", result);
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Owner introuvable." });
         }
@@ -119,6 +136,8 @@ router.delete('/deleteOwner/:id', async (req, res) => {
         const sql = "DELETE FROM owner WHERE id = ?";
         const [result] = await db.query(sql, [id]);
 
+        console.log("🗑️ Résultat suppression :", result);
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ error: "Owner introuvable." });
         }
@@ -126,6 +145,20 @@ router.delete('/deleteOwner/:id', async (req, res) => {
         res.status(200).json({ message: "Owner supprimé avec succès." });
     } catch (err) {
         console.error("❌ Erreur lors de la suppression :", err);
+        res.status(500).json({ error: "Erreur serveur." });
+    }
+});
+
+// 🔢 Compter le nombre de voitures d'un owner
+router.get('/countCars/:ownerId', async (req, res) => {
+    const { ownerId } = req.params;
+    try {
+        const sql = "SELECT COUNT(*) AS carCount FROM car WHERE proprio = ?";
+        const [[{ carCount }]] = await db.query(sql, [ownerId]);
+        console.log(`🚗 Nombre de voitures pour owner ${ownerId} :`, carCount);
+        res.status(200).json({ carCount });
+    } catch (err) {
+        console.error("❌ Erreur lors du comptage des voitures :", err);
         res.status(500).json({ error: "Erreur serveur." });
     }
 });

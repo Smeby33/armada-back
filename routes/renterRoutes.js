@@ -83,21 +83,59 @@ router.put('/modifier/renter/:id', async (req, res) => {
   }
 });
 
-// 🗑 Supprimer un client
-router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-  console.log("📥 [DELETE /:id] id reçu :", id);
+// 🗑 Supprimer un renter par son id
+router.delete('/deleteRenter/:renterId', async (req, res) => {
+  const { renterId } = req.params;
+  console.log("📥 [DELETE /deleteRenter/:renterId] id reçu :", renterId);
   try {
-    const [result] = await db.query('DELETE FROM renter WHERE id = ?', [id]);
-    console.log("📤 [DELETE /:id] Résultat SQL :", result);
+    const [result] = await db.query('DELETE FROM renter WHERE id = ?', [renterId]);
+    console.log("📤 [DELETE /deleteRenter/:renterId] Résultat SQL :", result);
     if (result.affectedRows === 0) {
-      console.log("❌ [DELETE /:id] Renter non trouvé pour id :", id);
+      console.log("❌ [DELETE /deleteRenter/:renterId] Renter non trouvé pour id :", renterId);
       return res.status(404).json({ message: 'Renter non trouvé' });
     }
     res.json({ message: 'Renter supprimé avec succès' });
   } catch (err) {
-    console.error("❌ [DELETE /:id] Erreur serveur :", err);
+    console.error("❌ [DELETE /deleteRenter/:renterId] Erreur serveur :", err);
     res.status(500).json({ message: 'Erreur serveur', error: err });
+  }
+});
+
+// 🔍 Récupérer tous les renters d'un owner (propriétaire)
+router.get('/renters/byOwner/:ownerId', async (req, res) => {
+  const { ownerId } = req.params;
+  console.log("📥 [GET /renters/byOwner/:ownerId] ownerId reçu :", ownerId);
+
+  try {
+    const [rows] = await db.query(
+      `SELECT DISTINCT r.*
+       FROM renter r
+       JOIN reservation res ON r.id = res.conducteur
+       WHERE res.proprietaire = ?`,
+      [ownerId]
+    );
+    console.log(`[GET /renters/byOwner/:ownerId] Renters récupérés pour le propriétaire ${ownerId} :`, rows);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Aucun renter trouvé pour ce propriétaire." });
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ [GET /renters/byOwner/:ownerId] Erreur SQL :", err);
+    res.status(500).json({ error: "Erreur lors de la récupération des renters." });
+  }
+});
+
+// 🔍 Récupérer tous les renters
+router.get('/getAllRenters', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM renter');
+    console.log("📦 [GET /getAllRenters] Renters récupérés :", rows);
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ [GET /getAllRenters] Erreur SQL :", err);
+    res.status(500).json({ error: "Erreur lors de la récupération des renters." });
   }
 });
 

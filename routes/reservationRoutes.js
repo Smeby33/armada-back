@@ -54,7 +54,7 @@ router.post('/reservation', async (req, res) => {
 
 
 // ✏️ Mettre à jour une réservation
-router.put('/:id', async (req, res) => {
+router.put('/updateReservation/:id', async (req, res) => {
   const { id } = req.params;
   const fields = req.body;
 
@@ -166,6 +166,7 @@ router.get('/reservations/proprietaire/:id', async (req, res) => {
 
   try {
     const [rows] = await db.query('SELECT * FROM reservation WHERE proprietaire = ?', [id]);
+    console.log(`[GET /reservations/proprietaire/:id] Réservations récupérées pour le propriétaire ${id} :`, rows);
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "Aucune réservation trouvée pour ce propriétaire." });
@@ -376,6 +377,60 @@ router.get('/revenue/custom/:ownerId', async (req, res) => {
   } catch (err) {
     console.error("❌ [GET /revenue/custom/:ownerId] Erreur SQL :", err);
     res.status(500).json({ error: "Erreur lors du calcul des revenus personnalisés." });
+  }
+});
+
+// 🔢 Compter le nombre de réservations d'un conducteur
+router.get('/countReservations/:id', async (req, res) => {
+  const { id } = req.params;
+  console.log(`📥 [GET /countReservations/:id] id conducteur reçu : ${id}`);
+
+  try {
+    const [[{ reservationCount }]] = await db.query(
+      'SELECT COUNT(*) AS reservationCount FROM reservation WHERE conducteur = ?',
+      [id]
+    );
+    console.log(`📦 [GET /countReservations/:id] Nombre de réservations trouvées pour le conducteur ${id} :`, reservationCount);
+
+    res.json({ reservationCount });
+  } catch (err) {
+    console.error("❌ [GET /countReservations/:id] Erreur SQL :", err);
+    res.status(500).json({ error: "Erreur lors du comptage des réservations." });
+  }
+});
+
+// 🔍 Récupérer toutes les réservations d'une voiture
+router.get('/reservations/voiture/:id', async (req, res) => {
+  const { id } = req.params;
+  console.log(`📥 [GET /reservations/voiture/:id] id voiture reçu : ${id}`);
+
+  try {
+    const [rows] = await db.query('SELECT * FROM reservation WHERE voiture = ?', [id]);
+    console.log(`[GET /reservations/voiture/:id] Réservations récupérées pour la voiture ${id} :`, rows);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Aucune réservation trouvée pour cette voiture." });
+    }
+
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ [GET /reservations/voiture/:id] Erreur SQL :", err);
+    res.status(500).json({ error: "Erreur lors de la récupération des réservations." });
+  }
+});
+
+// 🔍 Récupérer les 10 dernières réservations
+router.get('/reservations/last10', async (req, res) => {
+  console.log("📥 [GET /reservations/last10] Demande de récupération des 10 dernières réservations");
+  try {
+    const [rows] = await db.query(
+      'SELECT * FROM reservation ORDER BY created_at DESC LIMIT 10'
+    );
+    console.log(`📤 [GET /reservations/last10] Réservations récupérées :`, rows);
+    res.json(rows);
+  } catch (err) {
+    console.error("❌ [GET /reservations/last10] Erreur SQL :", err);
+    res.status(500).json({ error: "Erreur lors de la récupération des réservations." });
   }
 });
 

@@ -60,10 +60,13 @@ router.get('/car/:id', async (req, res) => {
 // 🔍 Récupérer toutes les voitures d’un propriétaire
 router.get('/cars/byOwner/:proprio', async (req, res) => {
     const { proprio } = req.params;
+    console.log("📥 [GET /cars/byOwner/:proprio] proprio reçu :", proprio);
     try {
         const [rows] = await db.query('SELECT * FROM car WHERE proprio = ?', [proprio]);
+        console.log("📦 [GET /cars/byOwner/:proprio] voitures récupérées :", rows);
         res.json(rows);
     } catch (err) {
+        console.error("❌ [GET /cars/byOwner/:proprio] Erreur SQL :", err);
         res.status(500).json({ error: "Erreur lors de la récupération des voitures." });
     }
 });

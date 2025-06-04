@@ -13,6 +13,7 @@ const serviceRoutes = require('./routes/serviceRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const dateautoRoutes = require('./routes/dateautoRoutes');
 const paiementRoutes = require('./routes/paiementRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 dotenv.config();
 app.use((req, res, next) => {
@@ -29,6 +30,7 @@ app.use(cors({
  
 
 // Utilisation des routes
+app.use('/admins', adminRoutes);
 app.use('/owners', ownerRoutes);
 app.use('/cars', carRoutes);
 app.use('/renters', renterRoutes);
